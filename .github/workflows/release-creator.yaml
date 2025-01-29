@@ -77,7 +77,7 @@ jobs:
           REL_VERSION: ${{ env.REL_VERSION }}
         run: |
           echo "new version to be released:$REL_VERSION"
-          git tag -s -a $REL_VERSION -m "Release $REL_VERSION" --local-gpg=gpg
+          git tag -s -a $REL_VERSION -m "Release $REL_VERSION"
           git push origin $REL_VERSION
 
       - name: Create Release
