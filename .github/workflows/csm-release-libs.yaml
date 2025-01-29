@@ -45,5 +45,5 @@ jobs:
     needs: build-and-scan
     uses: khareRajshree/common-github-actions/.github/workflows/release-creator.yaml@main
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ inputs.version }}
     secrets: inherit
