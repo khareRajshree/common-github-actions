@@ -21,14 +21,14 @@ jobs:
         repo: ["khareRajshree/gobrick"]
 
     steps:
-      # Sanitize the GPG key to escape any line breaks
-      - name: Sanitize GPG Key
-        # id: sanitize_key
-        run: |
-          echo "${{ secrets.CSM_GPG_PRIVATE_KEY }}" | awk '{printf "%s\\n", $0}' > sanitized_gpg_key.txt
-          # SANITIZED_KEY=$(cat sanitized_gpg_key.txt)
-          # echo "sanitized_key=$SANITIZED_KEY" >> $GITHUB_ENV
-          echo "SANITIZED_KEY=$(cat sanitized_gpg_key.txt)" >> $GITHUB_ENV
+      # # Sanitize the GPG key to escape any line breaks
+      # - name: Sanitize GPG Key
+      #   # id: sanitize_key
+      #   run: |
+      #     echo "${{ secrets.CSM_GPG_PRIVATE_KEY }}" | awk '{printf "%s\\n", $0}' > sanitized_gpg_key.txt
+      #     # SANITIZED_KEY=$(cat sanitized_gpg_key.txt)
+      #     # echo "sanitized_key=$SANITIZED_KEY" >> $GITHUB_ENV
+      #     echo "SANITIZED_KEY=$(cat sanitized_gpg_key.txt)" >> $GITHUB_ENV
 
       - name: Trigger Release of CSM Drivers and Modules
         uses: peter-evans/repository-dispatch@v3
@@ -40,6 +40,5 @@ jobs:
           client-payload: |
             { 
               "ref": "${{ github.ref }}", 
-              "sha": "${{ github.sha }}", 
-              "secret_key": "${{ env.SANITIZED_KEY }}"
+              "sha": "${{ github.sha }}"
             }
