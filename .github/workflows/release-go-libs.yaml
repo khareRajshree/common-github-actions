@@ -32,6 +32,12 @@ jobs:
               "sha": "${{ github.sha }}"
             }
 
+  update_dependencies:
+    name: Update Dell Packages to Latest Commits
+    runs-on: ubuntu-latest
+    needs: release_independent_repos
+    uses: khareRajshree/common-github-actions/.github/workflows/update-libraries-to-commits.yml
+
   release_dependent_repo:
     name: Release gobrick
     runs-on: ubuntu-latest
