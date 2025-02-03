@@ -84,7 +84,7 @@ jobs:
       - uses: actions/create-github-app-token@v1.11.1
         id: generate-token
         with:
-          app-id: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          app-id: ${{ vars.CSM_RELEASE_APP_ID }}
           private-key: ${{ secrets.CSM_GPG_PRIVATE_KEY }}
 
       - name: Create Pull Request
