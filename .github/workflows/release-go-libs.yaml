@@ -59,7 +59,7 @@ jobs:
   release_dependent_repo:
     name: Release gobrick
     runs-on: ubuntu-latest
-    needs: [release_independent_repos, update_dependencies]
+    needs: [release_independent_repos]
     strategy:
       matrix:
         repo: ["khareRajshree/gobrick"]
