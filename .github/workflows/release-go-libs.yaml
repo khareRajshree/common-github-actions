@@ -18,19 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo: ["khareRajshree/gobrick"]
+        repo: [
+            "khareRajshree/goiscsi",
+            "khareRajshree/gonvme",
+            "khareRajshree/gobrick",
+            # "khareRajshree/gopowerstore",
+            # "khareRajshree/gopowerscale",
+            # "khareRajshree/gofsutil",
+            # "khareRajshree/gocsi",
+            # "khareRajshree/gopowermax",
+            # "khareRajshree/goscaleio",
+            # "khareRajshree/goobjectscale",
+            # "khareRajshree/gounity",
+          ]
 
     steps:
-      # # Sanitize the GPG key to escape any line breaks
-      # - name: Sanitize GPG Key
-      #   # id: sanitize_key
-      #   run: |
-      #     echo "${{ secrets.CSM_GPG_PRIVATE_KEY }}" | awk '{printf "%s\\n", $0}' > sanitized_gpg_key.txt
-      #     # SANITIZED_KEY=$(cat sanitized_gpg_key.txt)
-      #     # echo "sanitized_key=$SANITIZED_KEY" >> $GITHUB_ENV
-      #     echo "SANITIZED_KEY=$(cat sanitized_gpg_key.txt)" >> $GITHUB_ENV
-
-      - name: Trigger Release of CSM Drivers and Modules
+      - name: Trigger Release of CSM Go libraries
         uses: peter-evans/repository-dispatch@v3
         with:
           # For token information, see: https://github.com/peter-evans/repository-dispatch/tree/main?tab=readme-ov-file#token
