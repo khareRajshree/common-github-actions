@@ -35,7 +35,6 @@ jobs:
   update_dependencies:
     uses: khareRajshree/common-github-actions/.github/workflows/update-libraries-to-commits.yml@main
     name: Update Dell Packages to Latest Commits
-    runs-on: ubuntu-latest
     needs: release_independent_repos
     secrets: inherit
 
