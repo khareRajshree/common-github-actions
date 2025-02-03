@@ -33,7 +33,7 @@ jobs:
 
       - name: Grab Dell libraries file
         run: |
-          export LIST="https://raw.githubusercontent.com/khareRajshree/test-common-github-actions/main/.github/configs/dell-libraries-list.txt"
+          export LIST="https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/configs/dell-libraries-list.txt"
           curl -O -f $LIST
 
       - name: Update packages to latest versions in go.mod
