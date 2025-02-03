@@ -85,7 +85,7 @@ jobs:
         id: generate-token
         with:
           app-id: ${{ vars.CSM_RELEASE_APP_ID }}
-          private-key: ${{ secrets.CSM_GPG_PRIVATE_KEY }}
+          private-key: ${{ secrets.CSM_RELEASE_APP_PRIVATE_KEY }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
