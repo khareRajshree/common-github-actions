@@ -109,27 +109,28 @@ jobs:
             const repo = context.repo.repo;
             const prBranch = "update-dependencies-to-latest-released";
 
+            console.log(`Owner: ${owner}`);
+            console.log(`Repository: ${repo}`);
+            console.log(`Branch: ${prBranch}`);
+
             async function checkPRMerged() {
               // Get open PRs from the branch
-              const { data: prs } = await github.pulls.list({
+              const { data: openPRs } = await github.pulls.list({
                 owner,
                 repo,
-                head: `${owner}:${prBranch}`
+                head: `${owner}:${prBranch}`,
+                state: 'open'
               });
 
-              if (prs.length === 0) {
+              console.log(`Open PRs: ${JSON.stringify(openPRs, null, 2)}`);
+
+              if (openPRs.length === 0) {
+                // If there are no open PRs for the branch, the PR is merged or not created
                 console.log(`PR for branch ${prBranch} is merged or there is no PR open`);
-                return true;
+                return;
               }
 
-              const pr = prs[0];
-
-              if (pr.state === 'closed' && pr.merged) {
-                console.log(`PR has been merged successfully.`);
-                return true;
-              }
-
-              return false;
+              throw new Error(`PR for branch ${prBranch} is still open`);
             }
 
             // Retry logic to poll the PR status
@@ -138,16 +139,16 @@ jobs:
             const delayBetweenAttempts = 60000; // 60 seconds
 
             while (attempt < maxAttempts) {
-              const isMerged = await checkPRMerged();
-              if (isMerged) {
+              try {
+                await checkPRMerged();
+                console.log(`PR merged successfully.`);
                 break;
+              } catch (error) {
+                console.log(`Attempt ${attempt + 1} of ${maxAttempts}: ${error.message}`);
+                if (attempt + 1 >= maxAttempts) {
+                  throw new Error(`PR was not merged after ${maxAttempts * delayBetweenAttempts / 1000 / 60} minutes`);
+                }
+                attempt++;
+                await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
               }
-
-              console.log(`Attempt ${attempt + 1} of ${maxAttempts}: PR not merged yet.`);
-              if (attempt + 1 >= maxAttempts) {
-                throw new Error(`PR was not merged after ${maxAttempts * delayBetweenAttempts / 1000 / 60} minutes`);
-              }
-              
-              attempt++;
-              await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
             }
