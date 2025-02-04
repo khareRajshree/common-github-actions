@@ -112,8 +112,8 @@ jobs:
           pr_count=$(echo "$pr_list" | jq '. | length')
 
           if [ "$pr_count" -eq 0 ]; then
-            echo "No open PR found for the branch '$branch'. Exiting."
-            exit 1
+            echo "No open PR found for the branch '$branch'."
+            break
           else
               echo "Waiting for the PR to be merged. Please merge the PR manually."
               while true; do
