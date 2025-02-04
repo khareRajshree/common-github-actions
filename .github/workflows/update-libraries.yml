@@ -59,6 +59,7 @@ jobs:
             fi
 
             MODULE_PATH=$(go list -m -f '{{.Path}}' $REPO 2>/dev/null)
+            echo "MODULE_PATH $MODULE_PATH"
             if [[ $? -ne 0 ]]; then
               echo "Skipping $REPO: not a known dependency"
               continue
