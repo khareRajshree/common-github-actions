@@ -106,9 +106,12 @@ jobs:
           echo "Checking if there is an open PR for the branch '$branch'..."
 
           # Retrieve the list of open PRs for the specified branch.
-          pr_info=$(gh pr list --base "$branch" --json number,title,state)
+          pr_list=$(gh pr list --head "$branch" --json number)
 
-          if [ -z "$pr_info" ]; then
+          # Count the number of open PRs using jq
+          pr_count=$(echo "$pr_list" | jq '. | length')
+
+          if [ "$pr_count" -eq 0 ]; then
             echo "No open PR found for the branch '$branch'. Exiting."
             exit 1
           else
