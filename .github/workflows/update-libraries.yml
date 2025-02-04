@@ -59,7 +59,6 @@ jobs:
             fi
 
             MODULE_PATH=$(go list -m -f '{{.Path}}' $REPO 2>/dev/null)
-            echo "MODULE_PATH $MODULE_PATH"
             if [[ $? -ne 0 ]]; then
               echo "Skipping $REPO: not a known dependency"
               continue
@@ -105,7 +104,7 @@ jobs:
         run: |
           echo "Checking if the PR exists..."
           pr_exists=$(gh pr view update-dependencies-to-latest-released --json state --jq '.state' 2>/dev/null || echo "NOT_FOUND")
-
+          echo "pr_exists $pr_exists"
           if [ "$pr_exists" = "NOT_FOUND" ]; then
               echo "No PR found for the branch. Exiting."
               exit 1
