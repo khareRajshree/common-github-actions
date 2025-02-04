@@ -113,7 +113,6 @@ jobs:
 
           if [ "$pr_count" -eq 0 ]; then
             echo "No open PR found for the branch '$branch'."
-            break
           else
               echo "Waiting for the PR to be merged. Please merge the PR manually."
               while true; do
