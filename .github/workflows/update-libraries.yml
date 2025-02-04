@@ -104,7 +104,7 @@ jobs:
         run: |
           echo "Waiting for the PR to be merged. Please merge the PR manually."
           while true; do
-            pr_status=$(gh pr view update-common-dependency --json state --jq '.state')
+            pr_status=$(gh pr view update-dependencies-to-latest-released --json state --jq '.state')
             if [ "$pr_status" = "MERGED" ]; then
               echo "PR has been merged."
               break
