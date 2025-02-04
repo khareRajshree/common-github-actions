@@ -111,20 +111,25 @@ jobs:
 
             async function checkPRMerged() {
               // Get open PRs from the branch
-              const { data: openPRs } = await github.pulls.list({
+              const { data: prs } = await github.pulls.list({
                 owner,
                 repo,
-                head: `${owner}:${prBranch}`,
-                state: 'open'
+                head: `${owner}:${prBranch}`
               });
 
-              if (openPRs.length === 0) {
-                // If there are no open PRs for the branch, the PR is merged or not created
+              if (prs.length === 0) {
                 console.log(`PR for branch ${prBranch} is merged or there is no PR open`);
-                return;
+                return true;
               }
 
-              throw new Error(`PR for branch ${prBranch} is still open`);
+              const pr = prs[0];
+
+              if (pr.state === 'closed' && pr.merged) {
+                console.log(`PR has been merged successfully.`);
+                return true;
+              }
+
+              return false;
             }
 
             // Retry logic to poll the PR status
