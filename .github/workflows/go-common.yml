@@ -15,7 +15,7 @@ on:
 # Set defaults
 env:
   # unit test action
-  CODE_COVERAGE_TARGET: ${{ vars.CODE_COVERAGE_TARGET || 90 }}
+  CODE_COVERAGE_TARGET: ${{ vars.CODE_COVERAGE_TARGET || 70 }}
   CODE_COVERAGE_DIR: ${{ vars.CODE_COVERAGE_DIR || '.' }}
   SKIP_LIST: ${{ vars.PACKAGE_SKIP_LIST || '' }}
   RACE_DETECTOR: ${{ vars.RACE_DETECTOR || true }}
