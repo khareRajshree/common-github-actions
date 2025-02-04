@@ -101,54 +101,16 @@ jobs:
           delete-branch: true
 
       - name: Wait for PR to be merged
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const prBranch = "update-dependencies-to-latest-released";
-
-            console.log(`Owner: ${owner}`);
-            console.log(`Repository: ${repo}`);
-            console.log(`Branch: ${prBranch}`);
-
-            async function checkPRMerged() {
-              // Get open PRs from the branch
-              const { data: openPRs } = await github.pulls.list({
-                owner,
-                repo,
-                head: `${owner}:${prBranch}`,
-                state: 'open'
-              });
-
-              console.log(`Open PRs: ${JSON.stringify(openPRs, null, 2)}`);
-
-              if (openPRs.length === 0) {
-                // If there are no open PRs for the branch, the PR is merged or not created
-                console.log(`PR for branch ${prBranch} is merged or there is no PR open`);
-                return;
-              }
-
-              throw new Error(`PR for branch ${prBranch} is still open`);
-            }
-
-            // Retry logic to poll the PR status
-            let attempt = 0;
-            const maxAttempts = 30;
-            const delayBetweenAttempts = 60000; // 60 seconds
-
-            while (attempt < maxAttempts) {
-              try {
-                await checkPRMerged();
-                console.log(`PR merged successfully.`);
-                break;
-              } catch (error) {
-                console.log(`Attempt ${attempt + 1} of ${maxAttempts}: ${error.message}`);
-                if (attempt + 1 >= maxAttempts) {
-                  throw new Error(`PR was not merged after ${maxAttempts * delayBetweenAttempts / 1000 / 60} minutes`);
-                }
-                attempt++;
-                await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
-              }
-            }
+        run: |
+          echo "Waiting for the PR to be merged. Please merge the PR manually."
+          while true; do
+            pr_status=$(gh pr view update-common-dependency --json state --jq '.state')
+            if [ "$pr_status" = "MERGED" ]; then
+              echo "PR has been merged."
+              break
+            fi
+            echo "PR not merged yet. Sleeping for 1 minute..."
+            sleep 60
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
