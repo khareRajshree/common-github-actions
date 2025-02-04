@@ -105,20 +105,21 @@ jobs:
         run: |
           echo "Checking if the PR exists..."
           pr_exists=$(gh pr view update-dependencies-to-latest-released --json state --jq '.state' 2>/dev/null || echo "NOT_FOUND")
+
           if [ "$pr_exists" = "NOT_FOUND" ]; then
-            echo "No PR found for the branch. Exiting."
-            break
+              echo "No PR found for the branch. Exiting."
+              exit 1
           fi
 
           echo "Waiting for the PR to be merged. Please merge the PR manually."
           while true; do
-            pr_status=$(gh pr view update-dependencies-to-latest-released --json state --jq '.state')
-            if [ "$pr_status" = "MERGED" ]; then
-              echo "PR has been merged."
-              break
-            fi
-            echo "PR not merged yet. Sleeping for 1 minute..."
-            sleep 60
+              pr_status=$(gh pr view update-dependencies-to-latest-released --json state --jq '.state')
+              if [ "$pr_status" = "MERGED" ]; then
+                  echo "PR has been merged."
+                  break
+              fi
+              echo "PR not merged yet. Sleeping for 1 minute..."
+              sleep 60
           done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
