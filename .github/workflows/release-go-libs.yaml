@@ -14,11 +14,24 @@ on:
 
 jobs:
   release_independent_repos:
-    name: Release goiscsi and gonvme
+    name: Release Independent Go Libraries
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo: ["khareRajshree/goiscsi", "khareRajshree/gonvme"]
+        repo:
+          [
+            "khareRajshree/goiscsi",
+            "khareRajshree/gonvme",
+            "khareRajshree/gocsi",
+            "khareRajshree/gofsutil",
+            "khareRajshree/gopowerstore",
+            "khareRajshree/gopowerscale",
+            "khareRajshree/gopowermax",
+            "khareRajshree/gounity",
+            "khareRajshree/goscaleio",
+            "khareRajshree/goobjectscale",
+            "khareRajshree/dell-csi-extensions",
+          ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}
         id: release
@@ -34,12 +47,17 @@ jobs:
             }
 
   release_dependent_repo:
-    name: Release gobrick
+    name: Release Dependent Go Libraries
     runs-on: ubuntu-latest
     needs: [release_independent_repos]
     strategy:
       matrix:
-        repo: ["khareRajshree/gobrick"]
+        repo:
+          [
+            "khareRajshree/gobrick",
+            "khareRajshree/csi-metadata-retriever",
+            "khareRajshree/csi-volumegroup-snapshotter",
+          ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}
         uses: peter-evans/repository-dispatch@v3
