@@ -18,8 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo:
-          [
+        repo: [
             "khareRajshree/goiscsi",
             "khareRajshree/gonvme",
             "khareRajshree/gocsi",
@@ -30,7 +29,7 @@ jobs:
             "khareRajshree/gounity",
             "khareRajshree/goscaleio",
             "khareRajshree/goobjectscale",
-            "khareRajshree/dell-csi-extensions",
+            # "khareRajshree/dell-csi-extensions",
           ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}
