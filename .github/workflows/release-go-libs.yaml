@@ -19,8 +19,8 @@ jobs:
     strategy:
       matrix:
         repo: [
-            # "khareRajshree/goiscsi",
-            # "khareRajshree/gonvme",
+            "khareRajshree/goiscsi",
+            "khareRajshree/gonvme",
             # "khareRajshree/gocsi",
             # "khareRajshree/gofsutil",
             # "khareRajshree/gopowerstore",
@@ -29,7 +29,7 @@ jobs:
             # "khareRajshree/gounity",
             # "khareRajshree/goscaleio",
             # "khareRajshree/goobjectscale",
-            "khareRajshree/dell-csi-extensions",
+            # "khareRajshree/dell-csi-extensions",
             # "mgandharva/test-dell-csi-extensions",
           ]
     steps:
@@ -46,27 +46,26 @@ jobs:
               "sha": "${{ github.sha }}"
             }
 
-  # release_dependent_repo:
-  #   name: Release Dependent Go Libraries
-  #   runs-on: ubuntu-latest
-  #   needs: [release_independent_repos]
-  #   strategy:
-  #     matrix:
-  #       repo:
-  #         [
-  #           "khareRajshree/gobrick",
-  #           "khareRajshree/csi-metadata-retriever",
-  #           "khareRajshree/csi-volumegroup-snapshotter",
-  #         ]
-  #   steps:
-  #     - name: Trigger Release of ${{ matrix.repo }}
-  #       uses: peter-evans/repository-dispatch@v3
-  #       with:
-  #         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  #         repository: ${{ matrix.repo }}
-  #         event-type: release-go-libs
-  #         client-payload: |
-  #           {
-  #             "ref": "${{ github.ref }}",
-  #             "sha": "${{ github.sha }}"
-  #           }
+  release_dependent_repo:
+    name: Release Dependent Go Libraries
+    runs-on: ubuntu-latest
+    needs: [release_independent_repos]
+    strategy:
+      matrix:
+        repo: [
+            "khareRajshree/gobrick",
+            # "khareRajshree/csi-metadata-retriever",
+            # "khareRajshree/csi-volumegroup-snapshotter",
+          ]
+    steps:
+      - name: Trigger Release of ${{ matrix.repo }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: release-go-libs
+          client-payload: |
+            {
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}"
+            }
