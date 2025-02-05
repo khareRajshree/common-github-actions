@@ -30,7 +30,7 @@ jobs:
             # "khareRajshree/goscaleio",
             # "khareRajshree/goobjectscale",
             # "khareRajshree/dell-csi-extensions",
-            ""mgandharva/test-dell-csi-extensions,
+            "mgandharva/test-dell-csi-extensions",
           ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}
