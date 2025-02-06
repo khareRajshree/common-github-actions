@@ -59,6 +59,10 @@ jobs:
     steps:
       - name: Check status of triggered workflows
         run: |
+          # GitHub access token
+          GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          POLL_INTERVAL=60  # Check every 60 seconds
+
           # List of repositories to check
           declare -a repos=("khareRajshree/goiscsi" "khareRajshree/gonvme")
 
