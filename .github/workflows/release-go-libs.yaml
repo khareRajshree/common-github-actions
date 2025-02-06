@@ -86,6 +86,10 @@ jobs:
             fi
 
             echo "Checking workflow status for $repo..."
+            # Get the latest workflow run status for the specified event type
+            response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${repo}/actions/runs?event=repository_dispatch")
+            
+            echo "response: $response"
 
             while true; do
               # Get the latest workflow run status for the specified event type
@@ -94,7 +98,9 @@ jobs:
 
               # Parse the JSON response to get the workflow run status
               status=$(echo "${response}" | jq -r '.workflow_runs[0].status')
+              echo "status: $status"
               conclusion=$(echo "${response}" | jq -r '.workflow_runs[0].conclusion')
+              echo "conclusion: $conclusion"
 
               if [ "${status}" == "completed" ]; then
                 if [ "${conclusion}" == "success" ]; then
