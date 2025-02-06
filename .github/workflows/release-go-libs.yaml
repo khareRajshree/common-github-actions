@@ -59,11 +59,11 @@ jobs:
     steps:
       - name: Check status of triggered workflows
         run: |
-          # URL to fetch the repository list
-          REPO_LIST_URL="https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/configs/dell-libraries-list.txt"
+          # List of repositories to check
+          declare -a repos=("khareRajshree/goiscsi" "khareRajshree/gonvme")
 
           # GitHub access token
-          GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN="${1}"
           POLL_INTERVAL=60  # Check every 60 seconds
 
           # Fetch the repository list
