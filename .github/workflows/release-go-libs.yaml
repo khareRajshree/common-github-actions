@@ -69,7 +69,7 @@ jobs:
               response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/${repo}/actions/runs?event=repository_dispatch")
               
-              echo "Response for ${repo}: ${response}"  # Debug output for the repository
+              # echo "Response for ${repo}: ${response}"  # Debug output for the repository
 
               # Check for general errors and rate limiting
               if [[ "${response}" == *"Bad credentials"* ]]; then
