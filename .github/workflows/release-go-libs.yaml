@@ -57,7 +57,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           POLL_INTERVAL=60  # Check every 60 seconds
-          MAX_RETRIES=5     # Maximum number of retries for a given repository
+          MAX_RETRIES=1     # Maximum number of retries for a given repository
           REPO_LIST=("khareRajshree/goiscsi" "khareRajshree/gonvme")
 
           # Function to fetch workflow status with retries
