@@ -144,52 +144,46 @@ jobs:
             echo "Workflow ID for $WORKFLOW_FILE in $repo is $workflow_id."
           fi
 
-            while true; do
-              workflow_id=$(get_workflow_id)
-              if [ -z "$workflow_id" ]; then
-                echo "No workflow ID found for $WORKFLOW_FILE in $repo. Retrying..."
-                sleep "$POLL_INTERVAL"
-                continue
-              fi
+          while true; do
+            # Get the latest workflow run status for the specific workflow ID
+            response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?status=in_progress")
+            
+            echo "response: ${response}"
 
-              # Get the latest workflow run status for the specific workflow ID
-              response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?status=in_progress")
+            # Check for authentication errors
+            if [[ "${response}" == *"Bad credentials"* ]]; then
+              echo "Error: Bad credentials. Please check the provided GitHub token."
+              exit 1
+            fi
 
-              # Check for authentication errors
-              if [[ "${response}" == *"Bad credentials"* ]]; then
-                echo "Error: Bad credentials. Please check the provided GitHub token."
-                exit 1
-              fi
+            # Parse the JSON response to list in-progress workflows
+            workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[]')
+            if [ -z "${workflow_runs}" ]; then
+              echo "No in-progress workflows found for $WORKFLOW_FILE in $repo."
+              break
+            else
+              echo "In-progress workflows for $WORKFLOW_FILE in $repo:"
+              echo "${workflow_runs}" | jq -r '. | "\(.id): \(.html_url) - \(.status)"'
+            fi
 
-              # Parse the JSON response to list in-progress workflows
-              workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[]')
-              if [ -z "${workflow_runs}" ]; then
-                echo "No in-progress workflows found for $WORKFLOW_FILE in $repo."
+            status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
+            conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
+
+            echo "Current status for $repo: $status, conclusion: $conclusion"
+
+            if [ "${status}" == "completed" ]; then
+              if [ "${conclusion}" == "success" ]; then
+                echo "Workflow completed successfully for $repo."
                 break
               else
-                echo "In-progress workflows for $WORKFLOW_FILE in $repo:"
-                echo "${workflow_runs}" | jq -r '. | "\(.id): \(.html_url) - \(.status)"'
+                echo "Workflow failed for $repo."
+                exit 1
               fi
-
-              status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
-              conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
-
-              echo "Current status for $repo: $status, conclusion: $conclusion"
-
-              if [ "${status}" == "completed" ]; then
-                if [ "${conclusion}" == "success" ]; then
-                  echo "Workflow completed successfully for $repo."
-                  break
-                else
-                  echo "Workflow failed for $repo."
-                  exit 1
-                fi
-              else
-                echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
-                sleep "$POLL_INTERVAL"
-              fi
-            done
+            else
+              echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
+              sleep "$POLL_INTERVAL"
+            fi
           done
 
   release_dependent_repo:
