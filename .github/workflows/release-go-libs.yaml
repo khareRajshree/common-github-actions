@@ -50,6 +50,7 @@ jobs:
           cd .github/scripts/
           chmod +x check_workflow_status.sh
           ./check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
+        shell: bash
 
   release_dependent_repo:
     name: Release Dependent Go Libraries
