@@ -129,61 +129,44 @@ jobs:
           for repo in "${repos[@]}"; do
             echo "Checking workflow status for $repo..."
 
-          # Function to get the workflow ID from the workflow file name
-          get_workflow_id() {
-            local workflows=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${repo}/actions/workflows")
-            local workflow_id=$(echo "$workflows" | jq --arg WORKFLOW_FILE "$WORKFLOW_FILE" -r '.workflows[] | select(.path | contains($WORKFLOW_FILE)) | .id')
-            echo $workflow_id
-          }
+            retry_count=0
+            max_retries=5
 
-          workflow_id=$(get_workflow_id)
-          if [ -z "$workflow_id" ]; then
-            echo "No workflow ID found for $WORKFLOW_FILE in $repo. Retrying..."
-          else
-            echo "Workflow ID for $WORKFLOW_FILE in $repo is $workflow_id."
-          fi
+            while true; do
+              # Get the latest workflow run status for the specified event type
+              response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${repo}/actions/runs?event=repository_dispatch")
 
-          while true; do
-            # Get the latest workflow run status for the specific workflow ID
-            response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?status=in_progress")
-            
-            echo "response: ${response}"
-
-            # Check for authentication errors
-            if [[ "${response}" == *"Bad credentials"* ]]; then
-              echo "Error: Bad credentials. Please check the provided GitHub token."
-              exit 1
-            fi
-
-            # Parse the JSON response to list in-progress workflows
-            workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[]')
-            if [ -z "${workflow_runs}" ]; then
-              echo "No in-progress workflows found for $WORKFLOW_FILE in $repo."
-              break
-            else
-              echo "In-progress workflows for $WORKFLOW_FILE in $repo:"
-              echo "${workflow_runs}" | jq -r '. | "\(.id): \(.html_url) - \(.status)"'
-            fi
-
-            status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
-            conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
-
-            echo "Current status for $repo: $status, conclusion: $conclusion"
-
-            if [ "${status}" == "completed" ]; then
-              if [ "${conclusion}" == "success" ]; then
-                echo "Workflow completed successfully for $repo."
-                break
-              else
-                echo "Workflow failed for $repo."
-                exit 1
+              # Check if the API call was successful
+              if [ $? -ne 0 ]; then
+                retry_count=$((retry_count + 1))
+                if [ $retry_count -ge $max_retries ]; then
+                  echo "API call failed after $max_retries attempts."
+                  exit 1
+                else
+                  echo "API call failed. Retrying ($retry_count/$max_retries)..."
+                  sleep 5
+                  continue
+                fi
               fi
-            else
-              echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
-              sleep "$POLL_INTERVAL"
-            fi
+
+              # Parse the JSON response to get the workflow run status
+              status=$(echo "${response}" | jq -r '.workflow_runs[0].status')
+              conclusion=$(echo "${response}" | jq -r '.workflow_runs[0].conclusion')
+
+              if [ "${status}" == "completed" ]; then
+                if [ "${conclusion}" == "success" ]; then
+                  echo "Workflow completed successfully for $repo."
+                  break
+                else
+                  echo "Workflow failed for $repo."
+                  exit 1
+                fi
+              else
+                echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
+                sleep "$POLL_INTERVAL"
+              fi
+            done
           done
 
   release_dependent_repo:
