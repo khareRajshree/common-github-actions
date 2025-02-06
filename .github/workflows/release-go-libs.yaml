@@ -47,10 +47,7 @@ jobs:
       - name: Check status of triggered workflows for release of ${{ matrix.repo }}
         if: ${{ contains('["khareRajshree/goiscsi", "khareRajshree/gonvme"]', matrix.repo) }}
         run: |
-          pwd
-          echo "${GITHUB_WORKSPACE}"
-          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh
-          ls
+          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
           bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
         shell: bash
@@ -76,6 +73,7 @@ jobs:
             }
       - name: Check status of triggered workflows for release of ${{ matrix.repo }}
         run: |
-          cd $GITHUB_WORKSPACE/.github/scripts/
+          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
-          ./check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
+          bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
+        shell: bash
