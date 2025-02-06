@@ -133,7 +133,7 @@ jobs:
             get_workflow_id() {
               local workflows=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/${repo}/actions/workflows")
-              local workflow_id=$(echo "$workflows" | jq -r '.workflows[] | select(.path | contains($file)) | .id')
+              local workflow_id=$(echo "$workflows" | jq -r '.workflows[] | select(.path | contains($WORKFLOW_FILE)) | .id')
               echo $workflow_id
             }
 
