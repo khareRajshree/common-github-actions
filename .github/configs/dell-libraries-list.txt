@@ -1,3 +1,2 @@
-github.com/khareRajshree/gobrick
 github.com/khareRajshree/goiscsi
 github.com/khareRajshree/gonvme
