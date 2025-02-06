@@ -49,7 +49,7 @@ jobs:
         run: |
           pwd
           echo "${GITHUB_WORKSPACE}"
-          cd $GITHUB_WORKSPACE/.github/scripts/
+          cd ${GITHUB_WORKSPACE}/.github/scripts/
           pwd
           chmod +x check_workflow_status.sh
           bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}

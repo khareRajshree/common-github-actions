@@ -34,8 +34,8 @@ while true; do
   # Once it finds an in_progress workflow, it will keep polling until the workflow
   # is completed successfully or failed.          
   if [ "${STATUS}" == "in_progress" ]; then
-    WORKFLOW_ID=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].id')
-    echo "Workflow ID is: $WORKFLOW_ID"
+    WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
+    echo "Workflow ID is: ${WORKFLOW_ID}"
     echo "Workflow in progress for ${REPO}."
 
     while [ "${STATUS}" == "in_progress" ]; do
