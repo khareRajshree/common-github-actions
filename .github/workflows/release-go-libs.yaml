@@ -69,7 +69,22 @@ jobs:
           # Fetch the repository list
           repos=$(curl -s "${REPO_LIST_URL}")
 
-          for repo in "${repos[@]}"; do
+          if [ -z "$repos" ]; then
+            echo "Failed to fetch repository list."
+            exit 1
+          fi
+
+          # Process each line in the repository list
+          IFS=$'\n'
+          for repo in ${repos}; do
+            # Remove any surrounding whitespace
+            repo=$(echo "${repo}" | xargs)
+            
+            # Skip empty lines or commented lines
+            if [ -z "$repo" ] || [[ "$repo" == \#* ]]; then
+              continue
+            fi
+
             echo "Checking workflow status for $repo..."
 
             while true; do
