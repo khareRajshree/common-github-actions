@@ -49,9 +49,8 @@ jobs:
         run: |
           pwd
           echo "${GITHUB_WORKSPACE}"
-          tree .
-          cd ${GITHUB_WORKSPACE}/.github/scripts/
-          pwd
+          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh
+          ls
           chmod +x check_workflow_status.sh
           bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
         shell: bash
