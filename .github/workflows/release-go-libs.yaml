@@ -90,23 +90,23 @@ jobs:
 
   #             # echo "Found matching workflow runs for $repo"
 
-  #             status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
-  #             conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
+  # status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
+  # conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
 
-  #             echo "Current status for $repo: $status, conclusion: $conclusion"
+  # echo "Current status for $repo: $status, conclusion: $conclusion"
 
-  #             if [ "${status}" == "completed" ]; then
-  #               if [ "${conclusion}" == "success" ]; then
-  #                 echo "Workflow completed successfully for $repo."
-  #                 break
-  #               else
-  #                 echo "Workflow failed for $repo."
-  #                 exit 1
-  #               fi
-  #             else
-  #               echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
-  #               sleep "$POLL_INTERVAL"
-  #             fi
+  # if [ "${status}" == "completed" ]; then
+  #   if [ "${conclusion}" == "success" ]; then
+  #     echo "Workflow completed successfully for $repo."
+  #     break
+  #   else
+  #     echo "Workflow failed for $repo."
+  #     exit 1
+  #   fi
+  # else
+  #   echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
+  #   sleep "$POLL_INTERVAL"
+  # fi
   #           done
   #         done
 
@@ -123,29 +123,31 @@ jobs:
 
           # List of repositories to check
           declare -a repos=("khareRajshree/goiscsi" "khareRajshree/gonvme")
-          WORKFLOW_NAME="release-go-libs" # The display title of the workflow
+          WORKFLOW_NAME="release-go-libs"
+          WORKFLOW_FILE="release.yaml" # The workflow file name
 
           for repo in "${repos[@]}"; do
             echo "Checking workflow status for $repo..."
 
-            # Function to get the workflow ID from the workflow name
+            # Function to get the workflow ID from the workflow file name
             get_workflow_id() {
-              local workflow_id=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${repo}/actions/workflows" | jq -r --arg name "$WORKFLOW_NAME" '.workflows[] | select(.name == $name) | .id')
+              local workflows=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${repo}/actions/workflows")
+              local workflow_id=$(echo "$workflows" | jq -r --arg file "$WORKFLOW_FILE" '.workflows[] | select(.path == ".github/workflows/" + $file) | .id')
               echo $workflow_id
             }
 
             while true; do
               workflow_id=$(get_workflow_id)
               if [ -z "$workflow_id" ]; then
-                echo "No workflow ID found for $WORKFLOW_NAME in $repo. Retrying..."
+                echo "No workflow ID found for $WORKFLOW_FILE in $repo. Retrying..."
                 sleep "$POLL_INTERVAL"
                 continue
               fi
 
               # Get the latest workflow run status for the specific workflow ID
               response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?per_page=1")
+                "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?status=in_progress")
 
               # Check for authentication errors
               if [[ "${response}" == *"Bad credentials"* ]]; then
@@ -153,16 +155,18 @@ jobs:
                 exit 1
               fi
 
-              # Parse the JSON response to get the workflow run id and status
-              workflow_run=$(echo "${response}" | jq -c '.workflow_runs[0]')
-              if [ -z "${workflow_run}" ]; then
-                echo "No matching workflow run found for $WORKFLOW_NAME in $repo. Retrying..."
-                sleep "$POLL_INTERVAL"
-                continue
+              # Parse the JSON response to list in-progress workflows
+              workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[]')
+              if [ -z "${workflow_runs}" ]; then
+                echo "No in-progress workflows found for $WORKFLOW_FILE in $repo."
+                break
+              else
+                echo "In-progress workflows for $WORKFLOW_FILE in $repo:"
+                echo "${workflow_runs}" | jq -r '. | "\(.id): \(.html_url) - \(.status)"'
               fi
 
-              status=$(echo "${workflow_run}" | jq -r '.status')
-              conclusion=$(echo "${workflow_run}" | jq -r '.conclusion')
+              status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
+              conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
 
               echo "Current status for $repo: $status, conclusion: $conclusion"
 
@@ -180,6 +184,41 @@ jobs:
               fi
             done
           done
+
+            # # Function to list all in-progress workflows
+            # list_in_progress_workflows() {
+            #   local workflow_id=$(get_workflow_id)
+            #   if [ -z "$workflow_id" ]; then
+            #     echo "No workflow ID found for $WORKFLOW_NAME in $repo. Retrying..."
+            #     sleep "$POLL_INTERVAL"
+            #     continue
+            #   fi
+
+            #   while true; do
+            #     local response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            #       "https://api.github.com/repos/${repo}/actions/workflows/${workflow_id}/runs?status=in_progress")
+
+            #     # Check for authentication errors
+            #     if [[ "${response}" == *"Bad credentials"* ]]; then
+            #       echo "Error: Bad credentials. Please check the provided GitHub token."
+            #       exit 1
+            #     fi
+
+            #     # Parse the JSON response to list in-progress workflows
+            #     local in_progress_runs=$(echo "${response}" | jq -c '.workflow_runs[]')
+            #     if [ -z "${in_progress_runs}" ]; then
+            #       echo "No in-progress workflows found for $WORKFLOW_NAME in $repo, workflow completed"
+            #       break
+            #     else
+            #       echo "In-progress workflows for $WORKFLOW_NAME in $repo:"
+            #       echo "${in_progress_runs}" | jq -r '. | "\(.id): \(.html_url) - \(.status)"'
+            #     fi
+
+            #     sleep "$POLL_INTERVAL"
+            #   done
+            # }
+          # done
+
   release_dependent_repo:
     name: Release Dependent Go Libraries
     runs-on: ubuntu-latest
