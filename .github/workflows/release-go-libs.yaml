@@ -53,7 +53,7 @@ jobs:
       matrix:
         repo: ["khareRajshree/goiscsi", "khareRajshree/gonvme"]
     steps:
-      - name: Check status of triggered workflows
+      - name: Check status of triggered workflows for release of independent repos
         run: |
           # GitHub access token
           GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -119,3 +119,49 @@ jobs:
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}"
             }
+      - name: Check status of triggered workflows for release of dependent repos
+        run: |
+          # GitHub access token
+          GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          POLL_INTERVAL=60  # Check every 60 seconds
+          RETRY_COUNT=0
+          MAX_RETRIES=5
+
+          REPO="${{ matrix.repo }}"
+          echo "Checking workflow status for ${REPO}..."
+
+          while true; do
+            # Get the latest workflow run status for the specified event type
+            RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+
+            # Check if the API call was successful
+            if [ $? -ne 0 ]; then
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+                echo "API call failed after $MAX_RETRIES attempts."
+                exit 1
+              else
+                echo "API call failed. Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+                sleep 5
+                continue
+              fi
+            fi
+
+            # Parse the JSON response to get the workflow run status
+            STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+            CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+
+            if [ "${STATUS}" == "completed" ]; then
+              if [ "${CONCLUSION}" == "success" ]; then
+                echo "Workflow completed successfully for ${REPO}."
+                break
+              else
+                echo "Workflow failed for ${REPO}."
+                exit 1
+              fi
+            else
+              echo "Workflow not completed yet for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
+              sleep "$POLL_INTERVAL"
+            fi
+          done
