@@ -49,6 +49,7 @@ jobs:
         run: |
           pwd
           echo "${GITHUB_WORKSPACE}"
+          tree .
           cd ${GITHUB_WORKSPACE}/.github/scripts/
           pwd
           chmod +x check_workflow_status.sh
