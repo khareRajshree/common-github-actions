@@ -66,10 +66,6 @@ jobs:
           # List of repositories to check
           declare -a repos=("khareRajshree/goiscsi" "khareRajshree/gonvme")
 
-          # GitHub access token
-          GITHUB_TOKEN="${1}"
-          POLL_INTERVAL=60  # Check every 60 seconds
-
           for repo in "${repos[@]}"; do
             echo "Checking workflow status for $repo..."
 
