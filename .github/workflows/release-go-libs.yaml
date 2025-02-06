@@ -47,8 +47,8 @@ jobs:
       - name: Check status of triggered workflows for release of ${'${{ matrix.repo }}'}
         if: ${{ contains('["khareRajshree/goiscsi", "khareRajshree/gonvme"]', matrix.repo) }}
         run: |
-          chmod +x ../scripts/check_workflow_status.sh
-          ../scripts/check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
+          chmod +x ./.github/scripts/check_workflow_status.sh
+          ./.github/scripts/check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
 
   release_dependent_repo:
     name: Release Dependent Go Libraries
@@ -71,5 +71,5 @@ jobs:
             }
       - name: Check status of triggered workflows for release of ${'${{ matrix.repo }}'}
         run: |
-          chmod +x ../scripts/check_workflow_status.sh
-          ../scripts/check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
+          chmod +x ./.github/scripts/check_workflow_status.sh
+          ./.github/scripts/check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
