@@ -46,12 +46,12 @@ jobs:
             }
 
   wait_for_completion:
+    name: Wait for Release Completion
+    runs-on: ubuntu-latest
+    needs: release_independent_repos
     strategy:
       matrix:
         repo: ["khareRajshree/goiscsi", "khareRajshree/gonvme"]
-    name: Wait for Independent Repo Release Completion
-    runs-on: ubuntu-latest
-    needs: release_independent_repos
     steps:
       - name: Check status of triggered workflows
         run: |
