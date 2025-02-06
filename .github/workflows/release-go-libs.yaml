@@ -63,7 +63,7 @@ jobs:
           REPO_LIST_URL="https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/configs/dell-libraries-list.txt"
 
           # GitHub access token
-          GITHUB_TOKEN="${1}"
+          GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
           POLL_INTERVAL=60  # Check every 60 seconds
 
           # Fetch the repository list
