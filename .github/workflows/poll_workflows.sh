@@ -1,38 +1,63 @@
 #!/bin/bash
 
-# URL to fetch the repository list
-REPO_LIST_URL="https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/configs/dell-libraries-list.txt"
+RETRY_COUNT=0
+MAX_RETRIES=5
+POLL_INTERVAL=10
+REPO="khareRajshree/gobrick"
+echo "Checking workflow status for ${REPO}..."
 
-# GitHub access token
-GITHUB_TOKEN="${1}"
-POLL_INTERVAL=60  # Check every 60 seconds
+while true; do
+  # Get the latest workflow run status for the specified event type
+  RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+    "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
 
-# Fetch the repository list
-repos=$(curl -s "${REPO_LIST_URL}")
+  # Check if the API call was successful
+  if [ $? -ne 0 ]; then
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+      echo "API call failed after $MAX_RETRIES attempts."
+      exit 1
+    else
+      echo "API call failed. Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+      sleep 5
+      continue
+    fi
+  fi
 
-for repo in "${repos[@]}"; do
-  echo "Checking workflow status for $repo..."
+  # Parse the JSON response to get the workflow run status
+  STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+  CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
 
-  while true; do
-    # Get the latest workflow run status for the specified event type
-    response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-      "https://api.github.com/repos/${repo}/actions/runs?event=repository_dispatch")
+  # Reset retry count if API call was successful
+  RETRY_COUNT=0
 
-    # Parse the JSON response to get the workflow run status
-    status=$(echo "${response}" | jq -r '.workflow_runs[0].status')
-    conclusion=$(echo "${response}" | jq -r '.workflow_runs[0].conclusion')
+  # Continuously polls for the in_progress status of the most recently submitted workflow.
+  # Once it finds an in_progress workflow, it will keep polling until the workflow
+  # is completed successfully or failed.
+  if [ "${STATUS}" == "in_progress" ]; then
+    WORKFLOW_ID=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].id')
+    echo "Workflow ID is: $WORKFLOW_ID"
+    echo "Workflow in progress for ${REPO}."
 
-    if [ "${status}" == "completed" ]; then
-      if [ "${conclusion}" == "success" ]; then
-        echo "Workflow completed successfully for $repo."
+    while [ "${STATUS}" == "in_progress" ]; do
+      sleep "$POLL_INTERVAL"
+      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+      STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+      CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+    done
+
+    if [ "${STATUS}" == "completed" ]; then
+      if [ "${CONCLUSION}" == "success" ]; then
+        echo "Workflow completed successfully for ${REPO}."
         break
       else
-        echo "Workflow failed for $repo."
+        echo "Workflow failed for ${REPO}."
         exit 1
       fi
-    else
-      echo "Workflow not completed yet for $repo. Waiting for $POLL_INTERVAL seconds..."
-      sleep "$POLL_INTERVAL"
     fi
-  done
+  else
+    echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
+  fi
+
+  sleep "$POLL_INTERVAL"
 done
