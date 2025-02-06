@@ -73,25 +73,25 @@ jobs:
                 exit 1
               fi
 
-              # Extract the workflow run for the specific 'release-go-libs' workflow
-              workflow_run=$(echo "${response}" | jq -r '.workflow_runs[] | select(.name == "release-go-libs")')
+              # # Extract the workflow run for the specific 'release-go-libs' workflow
+              # workflow_run=$(echo "${response}" | jq -r '.workflow_runs[] | select(.name == "release-go-libs")')
 
-              if [ -z "$workflow_run" ]; then
-                echo "No matching workflow run found for 'release-go-libs' in $repo. Retrying..."
-                sleep "$POLL_INTERVAL"
-                continue
-              fi
+              # if [ -z "$workflow_run" ]; then
+              #   echo "No matching workflow run found for 'release-go-libs' in $repo. Retrying..."
+              #   sleep "$POLL_INTERVAL"
+              #   continue
+              # fi
 
-              # Parse the JSON response to get the workflow run id and status
-              workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[] | select(.name == "release-go-libs")')
+              # # Parse the JSON response to get the workflow run id and status
+              # workflow_runs=$(echo "${response}" | jq -c '.workflow_runs[] | select(.name == "release-go-libs")')
 
-              if [ -z "${workflow_runs}" ]; then
-                echo "No matching workflow run found for 'release-go-libs' in $repo. Retrying..."
-                sleep "$POLL_INTERVAL"
-                continue
-              fi
+              # if [ -z "${workflow_runs}" ]; then
+              #   echo "No matching workflow run found for 'release-go-libs' in $repo. Retrying..."
+              #   sleep "$POLL_INTERVAL"
+              #   continue
+              # fi
 
-              echo "Found matching workflow runs for $repo"
+              # echo "Found matching workflow runs for $repo"
 
               status=$(echo "${workflow_runs}" | jq -r '[.status] | first')
               conclusion=$(echo "${workflow_runs}" | jq -r '[.conclusion] | first')
