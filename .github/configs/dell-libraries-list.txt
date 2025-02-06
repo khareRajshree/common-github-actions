@@ -1,14 +1,3 @@
-github.com/khareRajshree/goscaleio
-github.com/khareRajshree/gopowermax
-github.com/khareRajshree/gounity
-github.com/khareRajshree/goisilon
-github.com/khareRajshree/gopowerstore
 github.com/khareRajshree/gobrick
-github.com/khareRajshree/gocsi
 github.com/khareRajshree/goiscsi
 github.com/khareRajshree/gonvme
-github.com/khareRajshree/goobjectscale
-github.com/khareRajshree/gofsutil
-github.com/khareRajshree/khareRajshree-csi-extensions
-github.com/khareRajshree/csi-metadata-retriever
-github.com/khareRajshree/csi-volumegroup-snapshotter
