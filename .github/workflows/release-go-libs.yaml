@@ -48,6 +48,7 @@ jobs:
         if: ${{ contains('["khareRajshree/goiscsi", "khareRajshree/gonvme"]', matrix.repo) }}
         run: |
           cd $GITHUB_WORKSPACE/.github/scripts/
+          pwd
           chmod +x check_workflow_status.sh
           ./check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }}
         shell: bash
