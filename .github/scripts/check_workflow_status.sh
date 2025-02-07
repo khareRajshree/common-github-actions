@@ -6,14 +6,13 @@ EVENT_TYPE=$3
 MAX_RETRIES=5
 POLL_INTERVAL=30
 RETRY_COUNT=0
-API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${EVENT_TYPE}"
+WORKFLOWS_API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${EVENT_TYPE}"
 LATEST_WORKFLOW_ID=""
 
 echo "Checking workflow status for ${REPO}..."
-echo "URL: ${API_URL}"
 
 # Get the latest workflow run status for the specified event type
-RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOWS_API_URL")
 
 # Check if the API call was successful
 if [ $? -ne 0 ]; then
@@ -37,7 +36,7 @@ if [ "$WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
   echo "confirming the recently submitted workflow..."
   for ((i=1; i<=5; i++)); do
     sleep "$POLL_INTERVAL"
-    RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+    RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOWS_API_URL")
     NEW_WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
     if [ "$NEW_WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
       LATEST_WORKFLOW_ID="$NEW_WORKFLOW_ID"
@@ -49,8 +48,10 @@ if [ "$WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
 fi
 
 echo "WORKFLOW_ID: ${WORKFLOW_ID}"
-STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')      
+WORKFLOW_API_URL="https://api.github.com/repos/${REPO}/actions/runs/${WORKFLOW_ID}"
+RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOW_API_URL")
+echo "URL: ${WORKFLOW_API_URL}"
+STATUS=$(echo "${RESPONSE}" | jq -r '.status')   
 
 # Poll up to 5 times to check for an in_progress status of the most recently submitted.
 # Once it finds an in_progress workflow, it will keep polling until the workflow is completed successfully or failed.
@@ -59,9 +60,9 @@ if [ "${STATUS}" == "in_progress" ]; then
 
   while [ "${STATUS}" == "in_progress" ]; do
     sleep "$POLL_INTERVAL"
-    RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
-    STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-    CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+    RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOW_API_URL")
+    STATUS=$(echo "${RESPONSE}" | jq -r '.status')
+    CONCLUSION=$(echo "${RESPONSE}" | jq -r '.conclusion')  
   done
 
   if [ "${STATUS}" == "completed" ]; then
@@ -81,6 +82,6 @@ elif [ "${STATUS}" == "completed" ]; then
     fi
 else
   echo "Either workflow ${WORKFLOW_ID} failed or is stuck for ${REPO}."
-  echo "Check at URL: ${API_URL}" 
+  echo "Check at URL: ${WORKFLOW_API_URL}" 
   exit 1
 fi
