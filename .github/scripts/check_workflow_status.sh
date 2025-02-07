@@ -4,10 +4,10 @@ GITHUB_TOKEN=$1
 REPO=$2
 EVENT_TYPE=$3
 MAX_RETRIES=5
-POLL_INTERVAL=60
+POLL_INTERVAL=30
 RETRY_COUNT=0
 API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${EVENT_TYPE}"
-latest_workflow_id=""
+LATEST_WORKFLOW_ID=""
 
 echo "Checking workflow status for ${REPO}..."
 echo "URL: ${API_URL}"
@@ -32,12 +32,27 @@ while true; do
   STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
   CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
   WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
+  LATEST_WORKFLOW_ID=0
 
   # Check if the workflow ID is different from the last detected workflow ID
   if [ "$WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
     LATEST_WORKFLOW_ID="$WORKFLOW_ID"
-    echo "New workflow detected. ID: ${WORKFLOW_ID}"
-    echo "verify if its from the same parent dispatch event and update the workflow ID"
+    echo "WORKFLOW_ID: ${WORKFLOW_ID}"
+    echo "confirming the recently submitted workflow..."
+    # Run the check in a loop for 5 times
+    for ((i=1; i<=5; i++)); do
+      sleep "$POLL_INTERVAL"
+      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+      NEW_WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
+
+      if [ "$NEW_WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
+        LATEST_WORKFLOW_ID="$NEW_WORKFLOW_ID"
+        echo "New workflow found: ${NEW_WORKFLOW_ID}"
+        echo "verify the workflow details from parent and continue..."
+        WORKFLOW_ID=$LATEST_WORKFLOW_ID
+        break
+      fi
+    done
   fi
 
   # Poll up to 5 times to check for an in_progress status of the most recently submitted.
@@ -62,8 +77,13 @@ while true; do
       fi
     fi
   else
-    echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
+    if [ "${STATUS}" == "completed" ]; then
+      if [ "${CONCLUSION}" == "success" ]; then
+        echo "Workflow completed successfully for ${REPO}."
+        exit 0
+      fi
+    fi
   fi
-
+  echo "sleeeeeeep called......."
   sleep "$POLL_INTERVAL"
 done
