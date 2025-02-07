@@ -63,4 +63,5 @@ while true; do
   done
 
   echo "Maximum retries exhausted, no recent workflow submitted for ${REPO}."
+  exit 0
 done
