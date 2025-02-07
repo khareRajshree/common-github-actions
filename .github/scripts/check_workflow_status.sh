@@ -9,6 +9,7 @@ RETRY_COUNT=0
 API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${EVENT_TYPE}"
 
 echo "Checking workflow status for ${REPO}..."
+echo "URL: ${API_URL}"
 
 while true; do
   # Get the latest workflow run status for the specified event type
