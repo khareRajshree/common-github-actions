@@ -33,14 +33,13 @@ LATEST_WORKFLOW_ID=0
 # Check if the workflow ID is different from the last detected workflow ID
 if [ "$WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
   LATEST_WORKFLOW_ID="$WORKFLOW_ID"
-  echo "confirming the recently submitted workflow..."
+  echo "fetching the recently submitted workflow..."
   for ((i=1; i<=5; i++)); do
     sleep "$POLL_INTERVAL"
     RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOWS_API_URL")
     NEW_WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
     if [ "$NEW_WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
       LATEST_WORKFLOW_ID="$NEW_WORKFLOW_ID"
-      echo "Recent workflow found: ${NEW_WORKFLOW_ID}"
       WORKFLOW_ID=$LATEST_WORKFLOW_ID
       break
     fi
@@ -80,6 +79,7 @@ elif [ "${STATUS}" == "completed" ]; then
       echo "Workflow completed successfully for ${REPO}."
       exit 0
     fi
+    
 else
   echo "Either workflow ${WORKFLOW_ID} failed or is stuck for ${REPO}."
   echo "Check at URL: ${WORKFLOW_API_URL}" 
