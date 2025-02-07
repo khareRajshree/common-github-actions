@@ -5,7 +5,7 @@ REPO=$2
 MAX_RETRIES=5
 POLL_INTERVAL=60
 RETRY_COUNT=0
-API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch"
+API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${$3}"
 
 echo "Checking workflow status for ${REPO}..."
 
