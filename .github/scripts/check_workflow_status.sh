@@ -29,9 +29,7 @@ while true; do
   STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
   CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
 
-  RETRY_COUNT=0
-
-  # Continuously poll up to 5 times to check for an in_progress status of the most recently submitted.
+  # Poll up to 5 times to check for an in_progress status of the most recently submitted.
   # Once it finds an in_progress workflow, it will keep polling until the workflow is completed successfully or failed.
   for (( i=0; i<$MAX_RETRIES; i++ )); do
     if [ "${STATUS}" == "in_progress" ]; then
@@ -61,7 +59,6 @@ while true; do
       sleep "$POLL_INTERVAL"
       RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
       STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-      CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
     fi
   done
 
