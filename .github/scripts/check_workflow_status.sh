@@ -62,5 +62,5 @@ while true; do
     echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
     sleep "$POLL_INTERVAL"
   else
-    echo "Maximum retries exhausted, no recent worflow submitted for ${REPO}."
+    echo "Maximum retries exhausted, no recent workflow submitted for ${REPO}."
 done
