@@ -32,7 +32,7 @@ while true; do
   current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
   # Find the most recent workflow run based on the timestamp
-  latest_run=$(echo "${RESPONSE}" | jq 'sort_by(.created_at) | last')
+  latest_run=$(echo "${RESPONSE}" | jq '.workflow_runs | sort_by(.created_at) | last')
 
   # Extract relevant information
   created_at=$(echo "${latest_run}" | jq -r '.created_at')
@@ -51,7 +51,7 @@ while true; do
       while [ "${status}" == "in_progress" ]; do
         sleep "$POLL_INTERVAL"
         RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
-        latest_run=$(echo "${RESPONSE}" | jq 'sort_by(.created_at) | last')
+        latest_run=$(echo "${RESPONSE}" | jq '.workflow_runs | sort_by(.created_at) | last')
         status=$(echo "${latest_run}" | jq -r '.status')
         conclusion=$(echo "${latest_run}" | jq -r '.conclusion')
       done
