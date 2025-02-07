@@ -48,13 +48,14 @@ fi
 
 echo "WORKFLOW_ID: ${WORKFLOW_ID}"
 WORKFLOW_API_URL="https://api.github.com/repos/${REPO}/actions/runs/${WORKFLOW_ID}"
-RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOW_API_URL")
 echo "URL: ${WORKFLOW_API_URL}"
+RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$WORKFLOW_API_URL")
 STATUS=$(echo "${RESPONSE}" | jq -r '.status')   
-echo "STATUS: ${STATUS}"
+# echo "STATUS: ${STATUS}"
+
 # Poll up to 5 times to check for an in_progress status of the most recently submitted.
 # Once it finds an in_progress or queued workflow, it will keep polling until the workflow is completed successfully or failed.
-if [ "${STATUS}" == "in_progress" || "${STATUS}" == "queued" ]; then
+if [ "${STATUS}" == "in_progress" ] || [ "${STATUS}" == "queued" ]; then
   echo "Workflow in progress for ${REPO}."
 
   while [ "${STATUS}" == "in_progress" ]; do
