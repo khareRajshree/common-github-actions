@@ -63,4 +63,5 @@ while true; do
     sleep "$POLL_INTERVAL"
   else
     echo "Maximum retries exhausted, no recent workflow submitted for ${REPO}."
+  fi
 done
