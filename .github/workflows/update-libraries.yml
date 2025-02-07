@@ -71,6 +71,9 @@ jobs:
               echo "Updating ${REPO}@latest"
               go get ${REPO}@latest || echo "Failed to update ${REPO}"
             fi
+            
+            # Save the REPO value to a GitHub Actions environment variable
+            echo "REPO=$REPO" >> $GITHUB_ENV
           done < dell-libraries-list.txt
           go mod tidy
 
@@ -132,5 +135,5 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
-          bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }} "push"
+          bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ env.REPO }} "push"
         shell: bash
