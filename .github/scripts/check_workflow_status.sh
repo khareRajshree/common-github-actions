@@ -2,15 +2,16 @@
 
 GITHUB_TOKEN=$1
 REPO=$2
+MAX_RETRIES=5
 POLL_INTERVAL=60
 RETRY_COUNT=0
-MAX_RETRIES=5
+API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch"
 
 echo "Checking workflow status for ${REPO}..."
 
 while true; do
-  # Get the latest workflow run status for the specified event type            
-  RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+  # Get the latest workflow run status for the specified event type
+  RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
 
   # Check if the API call was successful
   if [ $? -ne 0 ]; then
@@ -30,19 +31,18 @@ while true; do
 
   RETRY_COUNT=0
 
-  # Continuously polls for the in_progress status of the most recently submitted workflow with maximum 5 re-tries.
-  # Once it finds an in_progress workflow, it will keep polling until the workflow
-  # is completed successfully or failed.
-  if [ $? -ne 0 ]; then
-    RETRY_COUNT=$((RETRY_COUNT + 1))         
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ] && [ "${STATUS}" == "in_progress" ]; then
+  # Continuously poll up to 5 times to check for an in_progress status of the most recently submitted.
+  # Once it finds an in_progress workflow, it will keep polling until the workflow is completed successfully or failed.
+  for (( i=0; i<$MAX_RETRIES; i++ )); do
+    if [ "${STATUS}" == "in_progress" ]; then
       WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
       echo "Workflow ID is: ${WORKFLOW_ID}"
       echo "Workflow in progress for ${REPO}."
 
+      # Continuously poll until the workflow is completed
       while [ "${STATUS}" == "in_progress" ]; do
         sleep "$POLL_INTERVAL"
-        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
         STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
         CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
       done
@@ -58,10 +58,12 @@ while true; do
       fi
     else
       echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
-    fi    
-    echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
-    sleep "$POLL_INTERVAL"
-  else
-    echo "Maximum retries exhausted, no recent workflow submitted for ${REPO}."
-  fi
+      sleep "$POLL_INTERVAL"
+      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+      STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+      CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+    fi
+  done
+
+  echo "Maximum retries exhausted, no recent workflow submitted for ${REPO}."
 done
