@@ -80,8 +80,7 @@ while true; do
         exit 1
       fi
     fi
-  else
-    if [ "${STATUS}" == "completed" ]; then
+  elif [ "${STATUS}" == "completed" ]; then
       if [ "${CONCLUSION}" == "success" ]; then
         echo "Workflow completed successfully for ${REPO}."
         exit 0
