@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 GITHUB_TOKEN=$1
 REPO=$2
@@ -28,34 +28,48 @@ while true; do
     fi
   fi
 
-  STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-  CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+  # Get the current time
+  current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-  # Poll up to 5 times to check for an in_progress status of the most recently submitted.
-  # Once it finds an in_progress workflow, it will keep polling until the workflow is completed successfully or failed.
-  if [ "${STATUS}" == "in_progress" ]; then
-    WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
-    echo "Workflow ID is: ${WORKFLOW_ID}"
-    echo "Workflow in progress for ${REPO}."
+  # Find the most recent workflow run based on the timestamp
+  latest_run=$(echo "${RESPONSE}" | jq 'sort_by(.created_at) | last')
 
-    while [ "${STATUS}" == "in_progress" ]; do
-      sleep "$POLL_INTERVAL"
-      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
-      STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-      CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
-    done
+  # Extract relevant information
+  created_at=$(echo "${latest_run}" | jq -r '.created_at')
+  status=$(echo "${latest_run}" | jq -r '.status')
+  conclusion=$(echo "${latest_run}" | jq -r '.conclusion')
 
-    if [ "${STATUS}" == "completed" ]; then
-      if [ "${CONCLUSION}" == "success" ]; then
-        echo "Workflow completed successfully for ${REPO}."
-        exit 0
-      else
-        echo "Workflow failed for ${REPO}."
-        exit 1
+  # Compare the created_at timestamp with the current time
+  if [[ "$created_at" < "$current_time" ]]; then
+    # Poll up to 5 times to check for an in_progress status of the most recently submitted.
+    # Once it finds an in_progress workflow, it will keep polling until the workflow is completed successfully or failed.
+    if [ "${status}" == "in_progress" ]; then
+      workflow_id=$(echo "${latest_run}" | jq -r '.id')
+      echo "Workflow ID is: ${workflow_id}"
+      echo "Workflow in progress for ${REPO}."
+
+      while [ "${status}" == "in_progress" ]; do
+        sleep "$POLL_INTERVAL"
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+        latest_run=$(echo "${RESPONSE}" | jq 'sort_by(.created_at) | last')
+        status=$(echo "${latest_run}" | jq -r '.status')
+        conclusion=$(echo "${latest_run}" | jq -r '.conclusion')
+      done
+
+      if [ "${status}" == "completed" ]; then
+        if [ "${conclusion}" == "success" ]; then
+          echo "Workflow completed successfully for ${REPO}."
+          exit 0
+        else
+          echo "Workflow failed for ${REPO}."
+          exit 1
+        fi
       fi
+    else
+      echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
     fi
   else
-    echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
+    echo "No recent workflow runs found."
   fi
 
   sleep "$POLL_INTERVAL"
