@@ -2,10 +2,11 @@
 
 GITHUB_TOKEN=$1
 REPO=$2
+EVENT_TYPE=$3
 MAX_RETRIES=5
 POLL_INTERVAL=60
 RETRY_COUNT=0
-API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${$3}"
+API_URL="https://api.github.com/repos/${REPO}/actions/runs?event=${EVENT_TYPE}"
 
 echo "Checking workflow status for ${REPO}..."
 
@@ -38,7 +39,7 @@ while true; do
 
     while [ "${STATUS}" == "in_progress" ]; do
       sleep "$POLL_INTERVAL"
-      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
       STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
       CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
     done
