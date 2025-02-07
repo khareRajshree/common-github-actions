@@ -30,33 +30,37 @@ while true; do
 
   RETRY_COUNT=0
 
-  # Continuously polls for the in_progress status of the most recently submitted workflow.
+  # Continuously polls for the in_progress status of the most recently submitted workflow with maximum 5 re-tries.
   # Once it finds an in_progress workflow, it will keep polling until the workflow
-  # is completed successfully or failed.          
-  if [ "${STATUS}" == "in_progress" ]; then
-    WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
-    echo "Workflow ID is: ${WORKFLOW_ID}"
-    echo "Workflow in progress for ${REPO}."
+  # is completed successfully or failed.
+  if [ $? -ne 0 ]; then
+    RETRY_COUNT=$((RETRY_COUNT + 1))         
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ] && [ "${STATUS}" == "in_progress" ]; then
+      WORKFLOW_ID=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].id')
+      echo "Workflow ID is: ${WORKFLOW_ID}"
+      echo "Workflow in progress for ${REPO}."
 
-    while [ "${STATUS}" == "in_progress" ]; do
-      sleep "$POLL_INTERVAL"
-      RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
-      STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
-      CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
-    done
+      while [ "${STATUS}" == "in_progress" ]; do
+        sleep "$POLL_INTERVAL"
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch")
+        STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+        CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+      done
 
-    if [ "${STATUS}" == "completed" ]; then
-      if [ "${CONCLUSION}" == "success" ]; then
-        echo "Workflow completed successfully for ${REPO}."
-        exit 0
-      else
-        echo "Workflow failed for ${REPO}."
-        exit 1
+      if [ "${STATUS}" == "completed" ]; then
+        if [ "${CONCLUSION}" == "success" ]; then
+          echo "Workflow completed successfully for ${REPO}."
+          exit 0
+        else
+          echo "Workflow failed for ${REPO}."
+          exit 1
+        fi
       fi
-    fi
+    else
+      echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
+    fi    
+    echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+    sleep "$POLL_INTERVAL"
   else
-    echo "No in-progress workflow found for ${REPO}. Waiting for $POLL_INTERVAL seconds..."
-  fi
-
-  sleep "$POLL_INTERVAL"
+    echo "Maximum retries exhausted, no recent worflow submitted for ${REPO}."
 done

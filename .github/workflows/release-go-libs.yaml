@@ -45,7 +45,7 @@ jobs:
               "sha": "${{ github.sha }}"
             }
       - name: Check status of triggered workflows for release of ${{ matrix.repo }}
-        if: ${{ contains('["khareRajshree/goiscsi", "khareRajshree/gonvme"]', matrix.repo) }}
+        # if: ${{ contains('["khareRajshree/goiscsi", "khareRajshree/gonvme"]', matrix.repo) }}
         run: |
           curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
