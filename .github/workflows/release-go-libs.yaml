@@ -18,17 +18,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo: [
+        repo:
+          [
             "khareRajshree/goiscsi",
             "khareRajshree/gonvme",
-            # "khareRajshree/gocsi",
-            # "khareRajshree/gofsutil",
-            # "khareRajshree/gopowerstore",
-            # "khareRajshree/gopowerscale",
-            # "khareRajshree/gopowermax",
-            # "khareRajshree/gounity",
-            # "khareRajshree/goscaleio",
-            # "khareRajshree/goobjectscale",
+            "khareRajshree/gocsi",
+            "khareRajshree/gofsutil",
+            "khareRajshree/gopowerstore",
+            "khareRajshree/gopowerscale",
+            "khareRajshree/gopowermax",
+            "khareRajshree/gounity",
+            "khareRajshree/goscaleio",
+            "khareRajshree/goobjectscale",
           ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}

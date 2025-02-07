@@ -131,9 +131,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Wait for the workflow completion for "merging PR to main"
-        run: |
-          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
-          chmod +x check_workflow_status.sh
-          bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ github.repository }} "push"
-        shell: bash
+      # - name: Wait for the workflow completion for "merging PR to main"
+      #   run: |
+      #     curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
+      #     chmod +x check_workflow_status.sh
+      #     bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ github.repository }} "push"
+      #   shell: bash
