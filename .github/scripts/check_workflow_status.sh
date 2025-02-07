@@ -52,7 +52,6 @@ if [ "$WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
       RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
       STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
       CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
-      
       break
     fi
   done
@@ -86,7 +85,7 @@ elif [ "${STATUS}" == "completed" ]; then
     fi
   fi
 else
-  echo "Either workflow ${NEW_WORKFLOW_ID} failed or is stuck for ${REPO}."
+  echo "Either workflow ${WORKFLOW_ID} failed or is stuck for ${REPO}."
   echo "Check at URL: ${API_URL}" 
   exit 1
 fi
