@@ -47,9 +47,13 @@ while true; do
 
       if [ "$NEW_WORKFLOW_ID" != "$LATEST_WORKFLOW_ID" ]; then
         LATEST_WORKFLOW_ID="$NEW_WORKFLOW_ID"
-        echo "New workflow found: ${NEW_WORKFLOW_ID}"
-        echo "verify the workflow details from parent and continue..."
+        echo "Recent wworkflow found: ${NEW_WORKFLOW_ID}"
+        # echo "verify the workflow details from parent and continue..."
         WORKFLOW_ID=$LATEST_WORKFLOW_ID
+        RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+        STATUS=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].status')
+        CONCLUSION=$(echo "${RESPONSE}" | jq -r '.workflow_runs[0].conclusion')
+        
         break
       fi
     done
@@ -83,6 +87,10 @@ while true; do
         exit 0
       fi
     fi
+  else
+    echo "Either workflow ${NEW_WORKFLOW_ID} failed or is stuck for ${REPO}."
+    echo "Check at URL: ${API_URL}" 
+    exit 1
   fi
   echo "sleeeeeeep called......."
   sleep "$POLL_INTERVAL"
