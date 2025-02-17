@@ -83,6 +83,7 @@ if [ "${STATUS}" == "in_progress" ] || [ "${STATUS}" == "queued" ]; then
       exit 0
     else
       echo "Workflow failed for ${REPO}."
+      echo "Check at URL: ${WORKFLOW_URL}" 
       exit 1
     fi
   fi
@@ -91,10 +92,13 @@ elif [ "${STATUS}" == "completed" ]; then
     if [ "${CONCLUSION}" == "success" ]; then
       echo "Workflow completed successfully for ${REPO}."
       exit 0
+    else
+      echo "Workflow failed for ${REPO}."
+      echo "Check at URL: ${WORKFLOW_URL}" 
+      exit 1
     fi
-
 else
   echo "Either workflow ${WORKFLOW_ID} failed or is stuck for ${REPO}."
-  echo "Check at URL: ${WORKFLOW_API_URL}" 
+  echo "Check at URL: ${WORKFLOW_URL}" 
   exit 1
 fi
