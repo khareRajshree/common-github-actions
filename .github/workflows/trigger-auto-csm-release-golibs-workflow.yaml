@@ -20,16 +20,16 @@ jobs:
       matrix:
         repo:
           [
-            "dell/goiscsi",
-            "dell/gonvme",
-            "dell/gocsi",
-            "dell/gofsutil",
-            "dell/gopowerstore",
-            "dell/gopowerscale",
-            "dell/gopowermax",
-            "dell/gounity",
-            "dell/goscaleio",
-            "dell/dell-csi-extensions",
+            "khareRajshree/goiscsi",
+            "khareRajshree/gonvme",
+            "khareRajshree/gocsi",
+            "khareRajshree/gofsutil",
+            "khareRajshree/gopowerstore",
+            "khareRajshree/gopowerscale",
+            "khareRajshree/gopowermax",
+            "khareRajshree/gounity",
+            "khareRajshree/goscaleio",
+            "khareRajshree/dell-csi-extensions",
           ]
     steps:
       - name: Trigger Release of ${{ matrix.repo }}
@@ -46,7 +46,7 @@ jobs:
             }
       - name: Check status of triggered workflows for release of ${{ matrix.repo }}
         run: |
-          curl -sfL https://raw.githubusercontent.com/dell/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
+          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
           bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }} "repository_dispatch"
         shell: bash
@@ -72,7 +72,7 @@ jobs:
             }
       - name: Check status of triggered workflows for release of ${{ matrix.repo }}
         run: |
-          curl -sfL https://raw.githubusercontent.com/dell/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
+          curl -sfL https://raw.githubusercontent.com/khareRajshree/common-github-actions/main/.github/scripts/check_workflow_status.sh -o check_workflow_status.sh
           chmod +x check_workflow_status.sh
           bash check_workflow_status.sh ${{ secrets.PERSONAL_ACCESS_TOKEN }} ${{ matrix.repo }} "repository_dispatch"
         shell: bash
