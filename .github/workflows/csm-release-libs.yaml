@@ -35,7 +35,7 @@ jobs:
       - name: Build
         run: go build -v ./...
       - name: Run malware scan
-        uses: dell/common-github-actions/malware-scanner@main
+        uses: khareRajshree/common-github-actions/malware-scanner@main
         with:
           directories: .
           options: -ri
@@ -43,7 +43,7 @@ jobs:
   release-and-tag:
     name: Tag and Release
     needs: build-and-scan
-    uses: dell/common-github-actions/.github/workflows/release-creator.yaml@main
+    uses: khareRajshree/common-github-actions/.github/workflows/release-creator.yaml@main
     with:
       version: ${{ inputs.version }}
     secrets: inherit
