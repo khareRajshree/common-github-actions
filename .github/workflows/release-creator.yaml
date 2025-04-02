@@ -98,7 +98,7 @@ jobs:
         with:
           tag_name: ${{ env.REL_VERSION }}
           name: Release ${{ env.REL_VERSION }}
-          draft: true
+          draft: false
           prerelease: false
           generate_release_notes: true
           make_latest: true
