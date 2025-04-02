@@ -117,6 +117,7 @@ jobs:
                   pr_status=$(gh pr view "$branch" --json state --jq '.state')
                   if [ "$pr_status" = "MERGED" ]; then
                       echo "PR has been merged."
+                      git pull origin main
                       break
                   fi
                   echo "PR not merged yet. Sleeping for 1 minute..."
